@@ -25,9 +25,10 @@ DEFS = -DGLFW_DLL -DWIN32 -D___LIBRARY \
 # Compiler config
 #
 # Window only TODO - make platform agnostic
-CFLAGS = $(DEFS) -O0 -Wall -std=c99 -g -I$(GAMBIT_HOME)/include
-LDFLAGS = -lgambc -lglfwdll -lopengl32 -lglu32 -lmingw32 -lws2_32 \
-	-mwindows -L./contrib/lib -L$(GAMBIT_HOME)/lib
+CFLAGS = $(DEFS) -O0 -Wall -std=c99 -g -I./contrib/include \
+	-I./contrib/include/SDL -I$(GAMBIT_HOME)/include
+LDFLAGS = -lgambc -lglfwdll -lopengl32 -lglu32 -lmingw32 -lws2_32 -lSDL \
+	-lSDL_mixer -mwindows -L./contrib/lib -L$(GAMBIT_HOME)/lib
 
 # Note that path's here are from where the file is being *compiled*.  This is
 # a quirk of gsc.
@@ -91,7 +92,7 @@ $(BLD_DIR)/gen/$(PROG_NAME)_.scheme.c: $(SCM_C_SRCS)
 	$(SCM) -o $@ -link $^
 
 run:
-	PATH=./contrib/lib $(BLD_DIR)/$(PROG_NAME)
+	$(BLD_DIR)/$(PROG_NAME)
 
 clean:
 	rm -rf $(BLD_DIR) blocks.log scores.dat

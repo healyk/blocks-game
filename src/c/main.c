@@ -3,6 +3,7 @@
 
 #include "gfx.h"
 #include "util.h"
+#include "sound.h"
 
 //==============================================================================
 // Gambit scheme intergration
@@ -48,6 +49,8 @@ keyboard_callback_wrapper(int key, int pressed) {
 
 void
 shutdown_game(void) {
+  sound_shutdown();
+
   // Shutdown scheme
   if(g_is_scheme_init) {
     ___cleanup();
@@ -107,6 +110,11 @@ init_game(void) {
     gfx_begin_2d();
 
     g_is_gfx_init = true;
+  }
+
+  // Intialize sound
+  if(result) {
+    result = sound_init();
   }
 
   // Init scheme
@@ -176,8 +184,6 @@ main(int argc, char** argv, char** envp) {
       running = glfwGetWindowParam(GLFW_OPENED);
     }
   }
-
-  shutdown_game();
 
   return 0;
 }
