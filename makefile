@@ -64,35 +64,48 @@ OBJS = $(C_OBJS) $(SCM_OBJS) $(OBJ_DIR)/$(PROG_NAME)_.scheme.o
 all: $(BLD_DIR)/$(PROG_NAME)
 
 prebuild:
-	mkdir -p $(BLD_DIR)
-	mkdir -p $(OBJ_DIR)
+	@mkdir -p $(BLD_DIR)
+	@mkdir -p $(OBJ_DIR)
+	@echo "Building $(BLD_DIR)..."
 
 $(BLD_DIR)/$(PROG_NAME): prebuild $(OBJS)
-	$(CC) -o $@ $(OBJS) $(LDFLAGS)
+	@$(CC) -o $@ $(OBJS) $(LDFLAGS)
+	@echo "LINK    $@"
 
 #
 # C source builds
 #
 $(OBJ_DIR)/%.o: $(C_SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
-	$(CC) -c $(CFLAGS) -o $@ $<
+	@$(CC) -c $(CFLAGS) -o $@ $<
+	@echo "CC      $<"
 
 $(OBJ_DIR)/%.scheme.o: $(BLD_DIR)/gen/%.scheme.c
 	@mkdir -p $(dir $@)
-	$(SCM) -obj $(SCMFLAGS) -o $@ $<
+	@$(SCM) -obj $(SCMFLAGS) -o $@ $<
+	@echo "CC      $<"
 
 #
 # SCM source builds
 #
 $(BLD_DIR)/gen/%.scheme.c: $(SCM_SRC_DIR)/%.scm
 	@mkdir -p $(dir $@)
-	$(SCM) -c $(SCMFLAGS) -o $@ $<
+	@$(SCM) -c $(SCMFLAGS) -o $@ $<
+	@echo "SCM->C  $< -> $@"
 
 $(BLD_DIR)/gen/$(PROG_NAME)_.scheme.c: $(SCM_C_SRCS)
-	$(SCM) -o $@ -link $^
+	@$(SCM) -o $@ -link $^
+	@echo "Linkfile $@"
 
+#
+# Running, debugging and other utils
+#
 run:
-	$(BLD_DIR)/$(PROG_NAME)
+	@echo "Running $(BLD_DIR)/$(PROG_NAME)"
+	@PATH=$PATH:./contrib/lib $(BLD_DIR)/$(PROG_NAME)
+
+gdb:
+	PATH=$PATH:./contrib/lib gdb $(BLD_DIR)/$(PROG_NAME)
 
 clean:
 	rm -rf $(BLD_DIR) blocks.log scores.dat
