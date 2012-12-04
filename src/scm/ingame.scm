@@ -301,7 +301,10 @@
     ; Clear out full rows
     (let ((full-rows (game/find-full-rows game)))
       (if (not (null? full-rows))
-          (score-rows full-rows)))
+          (begin
+            (sound/play clear-row-sound)
+            (score-rows full-rows))
+          (sound/play place-piece-sound)))
     (game/add-new-piece! game)))
 
 ;; reset the drop time after a piece has moved down

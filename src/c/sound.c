@@ -13,11 +13,6 @@
 //==============================================================================
 #define BUFFER_SIZE 32768
 
-typedef struct source {
-  ALuint source;
-  sound_t* buffered_sound;
-} source_t;
-
 //==============================================================================
 // Globals
 //==============================================================================
@@ -36,6 +31,29 @@ struct {
   false, NULL, NULL, 0
 };
 
+/**
+   Queries OpenAL for an error.  If an error occurs it prints it to the logs
+   and returns false.
+
+   @param operation
+     Operation being executed.   Will be included in the log message.
+
+   @return
+     True if no error occured, false otherwise.
+*/
+static bool
+openal_check_for_error(const char* operation) {
+  int error = alGetError();
+  bool result = true;
+
+  if(error != AL_NO_ERROR) {
+    logmsg("Received OpenAL error %x for operation %s", error, operation);
+    result = false;
+  }
+
+  return result;
+}
+
 bool
 sound_init(void) {
   bool result = true;
@@ -43,7 +61,7 @@ sound_init(void) {
   // TODO: open a specific device?
   g_sound_context.device = alcOpenDevice(NULL);
   if(NULL == g_sound_context.device) {
-    logmsg("Unable to open OpenAL device: %d", alGetError());
+    logmsg("Unable to open OpenAL device: %x", alGetError());
     result = false;
   } else {
     logmsg("Initialized OpenAL device: %s", 
@@ -95,17 +113,15 @@ wav_to_sound(wav_t* wav, sound_t* sound) {
 
 static bool
 generate_buffers(sound_t* sound) {
-  int error = 0;
+  bool result = true;
 
   sound->buffer_count = (size_t)ceil(sound->size / (BUFFER_SIZE * 1.0));
   sound->buffers = new_array(ALuint, sound->buffer_count);
   alGenBuffers(sound->buffer_count, sound->buffers);
 
-  error = alGetError();
-  if(error != AL_NO_ERROR) {
-    logmsg("OpenAL error when generating buffers: %d", error);
-  } else {
-    for(int i = 0; i < sound->buffer_count; i++) {
+  result = openal_check_for_error("generating buffers");
+  if(result) {
+    for(int i = 0; i < sound->buffer_count && result; i++) {
       size_t buffer_size = min(BUFFER_SIZE, sound->size - (i * BUFFER_SIZE));
       
       alBufferData(sound->buffers[i],
@@ -114,14 +130,11 @@ generate_buffers(sound_t* sound) {
                    buffer_size,
                    sound->frequency);
       
-      error = alGetError();
-      if(error != AL_NO_ERROR) {
-        logmsg("OpenAL error when buffering data: %x", error);
-      }
+      result = openal_check_for_error("filling buffers");
     }
   }
 
-  return error == AL_NO_ERROR;
+  return result;
 }
 
 sound_t*
@@ -185,11 +198,10 @@ sound_shutdown(void) {
 
 void 
 sound_play(sound_t* sound) {
-  int error = 0;
-
   ALint current_buffer;
   alGetSourceiv(g_sound_context.source, AL_BUFFER, &current_buffer);
 
+  // unbind any previous sources
   if(current_buffer != AL_NONE) {
     alSourceStop(g_sound_context.source);
     alSourcei(g_sound_context.source,
@@ -197,14 +209,13 @@ sound_play(sound_t* sound) {
               AL_NONE);
   }
 
-  alSourceQueueBuffers(g_sound_context.source, 
-                       sound->buffer_count, 
-                       sound->buffers);
-
-  alSourcePlay(g_sound_context.source);
-  
-  error = alGetError();
-  if(error != AL_NO_ERROR) {
-    logmsg("OpenAL error when playing source: %x", error);
+  if(openal_check_for_error("unqueueing buffers")) {
+    alSourceQueueBuffers(g_sound_context.source, 
+                         sound->buffer_count, 
+                         sound->buffers);
+    
+    alSourcePlay(g_sound_context.source);
   }
+  
+  openal_check_for_error("playing sound");
 }

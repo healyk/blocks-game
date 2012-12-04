@@ -13,6 +13,7 @@
 
 ;; sounds
 (define menu-move-sound #f)
+(define menu-select-sound #f)
 
 (define (make-sprites-list sheet)
   (map (lambda (x) 
@@ -37,7 +38,8 @@
 
 (define (ui/init)
   (set! ui-font (make-font (load-texture "data/font.png") 16 16))
-  (set! menu-move-sound (make-sound "data/menu-move.wav")))
+  (set! menu-move-sound (make-sound "data/menu-move.wav"))
+  (set! menu-select-sound (make-sound "data/menu-select.wav")))
 
 (define (ui/render-string pos text . color)
   (render-string ui-font
@@ -241,7 +243,9 @@
             ((eq? key key-esc)
              (set! game-is-running #f))
             ((eq? key key-enter)
-             ((cadr (list-ref (cadr (menu/get-data)) current))))))))
+             (begin
+               (sound/play menu-select-sound)
+               ((cadr (list-ref (cadr (menu/get-data)) current)))))))))
    
    
    ; on-switch-to

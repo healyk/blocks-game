@@ -9,6 +9,9 @@
 (random-source-randomize! default-random-source)
 
 (define block-sprites #f)
+(define clear-row-sound #f)
+(define place-piece-sound #f)
+
 (define game #f)
 (define game-is-running #t)
 
@@ -114,7 +117,9 @@
           (ui/init)
           (highscore/init)
           (let ((tex (load-texture "data/blocks.png")))
-            (set! block-sprites (make-sprite-sheet tex 16 16))))
+            (set! block-sprites (make-sprite-sheet tex 16 16)))
+          (set! clear-row-sound (make-sound "data/row-clear.wav"))
+          (set! place-piece-sound (make-sound "data/place-piece.wav")))
 
 (c-define (update-game-hook delta) (long) bool
           "scheme_update_game" "extern"
