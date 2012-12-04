@@ -18,21 +18,23 @@ OBJ_DIR = build/obj
 C_SRC_DIR = $(SRC_DIR)/c
 SCM_SRC_DIR = $(SRC_DIR)/scm
 
-DEFS = -DGLFW_DLL -DWIN32 -D___LIBRARY \
+DEFS = -DGLFW_DLL -DWIN32 \
 	-DSCHEME_LIBRARY_LINKER=____20_$(PROG_NAME)___2e_scheme
 
 #
 # Compiler config
 #
 # Window only TODO - make platform agnostic
+#
 CFLAGS = $(DEFS) -O0 -Wall -std=c99 -g -I./contrib/include \
 	-I./contrib/include/SDL -I$(GAMBIT_HOME)/include
-LDFLAGS = -lgambc -lglfwdll -lopengl32 -lglu32 -lmingw32 -lws2_32 -lSDL \
-	-lSDL_mixer -mwindows -L./contrib/lib -L$(GAMBIT_HOME)/lib
+LDFLAGS = -lgambc -lglfwdll -lopengl32 -lglu32 -lmingw32 -lws2_32 -lopenal32 \
+	-mwindows -L./contrib/lib -L$(GAMBIT_HOME)/lib
 
-# Note that path's here are from where the file is being *compiled*.  This is
+# Note that paths here are from where the file is being *compiled*.  This is
 # a quirk of gsc.
-SCMFLAGS = -cc-options "$(DEFS) -I../../src/c" -debug
+SCMFLAGS = -cc-options "-D___LIBRARY $(DEFS) -I../../src/c -I../../contrib/include" \
+	-debug
 
 #
 # Big 'ol list of sources and objects.
@@ -105,7 +107,7 @@ run:
 	@PATH=$PATH:./contrib/lib $(BLD_DIR)/$(PROG_NAME)
 
 gdb:
-	PATH=$PATH:./contrib/lib gdb $(BLD_DIR)/$(PROG_NAME)
+	PATH=$PATH:./contrib/lib/ gdb $(BLD_DIR)/$(PROG_NAME)
 
 clean:
 	rm -rf $(BLD_DIR) blocks.log scores.dat

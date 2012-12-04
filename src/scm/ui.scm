@@ -11,6 +11,9 @@
 (define ui/lines-text-position (list ui/x-off 160))
 (define ui/characters-wide 7)
 
+;; sounds
+(define menu-move-sound #f)
+
 (define (make-sprites-list sheet)
   (map (lambda (x) 
          (get-sprite sheet x 0))
@@ -33,7 +36,8 @@
 (define ui-font '())
 
 (define (ui/init)
-  (set! ui-font (make-font (load-texture "data/font.png") 16 16)))
+  (set! ui-font (make-font (load-texture "data/font.png") 16 16))
+  (set! menu-move-sound (make-sound "data/menu-move.wav")))
 
 (define (ui/render-string pos text . color)
   (render-string ui-font
@@ -226,10 +230,14 @@
            (cond
             ((eq? key key-down)
              (if (< current (- (length (cadr (menu/get-data))) 1))
-                 (set! menu-data (list (+ 1 current) (menu/get-data)))))
+                 (begin
+                   (sound/play menu-move-sound)
+                   (set! menu-data (list (+ 1 current) (menu/get-data))))))
             ((eq? key key-up)
              (if (> current 0)
-                 (set! menu-data (list (- current 1) (menu/get-data)))))
+                 (begin
+                   (sound/play menu-move-sound)
+                   (set! menu-data (list (- current 1) (menu/get-data))))))
             ((eq? key key-esc)
              (set! game-is-running #f))
             ((eq? key key-enter)

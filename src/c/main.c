@@ -71,6 +71,8 @@ bool
 init_scheme(void) {
   bool result = true;
 
+  logmsg("Starting scheme init");
+
   ___setup_params_struct setup_params;
   ___setup_params_reset(&setup_params);
   
@@ -87,6 +89,8 @@ init_scheme(void) {
   
   g_is_scheme_init = true;
   glfwSetKeyCallback(&keyboard_callback_wrapper);
+
+  logmsg("Finished scheme init.");
   
   return result;
 }

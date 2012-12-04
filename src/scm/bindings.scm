@@ -6,6 +6,7 @@
 
 (##include "ffi.sch")
 (c-include "gfx.h" 'local)
+(c-include "sound.h" 'local)
 (c-include "GL/glfw.h")
 
 (c-define-type GLuint "GLuint")
@@ -123,6 +124,21 @@ C-LAMBDA-END
 
 (define gfx/get-width (c-lambda () int "gfx_get_width"))
 (define gfx/get-height (c-lambda () int "gfx_get_height"))
+
+;;;
+;;; sounds
+;;;
+
+(generate-release-fn "sound_delete")
+(c-define-type sound*
+               (pointer "sound_t" (sound-t)
+                        "sound_delete_release"))
+
+(define make-sound
+  (c-lambda (nonnull-char-string) sound* "sound_new"))
+
+(define sound/play
+  (c-lambda (sound*) void "sound_play"))
 
 ;;;
 ;;; input bindings
