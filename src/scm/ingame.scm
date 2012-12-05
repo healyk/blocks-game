@@ -52,7 +52,7 @@
                            (+ y-off (* y piece-pixel-size))))))))
 
 ;; Structure used to model a game.
-(define-structure tris-game
+(define-structure block-game
   score
   level
   lines
@@ -68,7 +68,7 @@
 
 ;; Creates a new game with an empty board.
 (define (new-game)
-  (make-tris-game 0
+  (make-block-game 0
                   1
                   0
                   (make-vector (* board-width board-height) '())
@@ -80,20 +80,20 @@
                   '()))
 
 (define (game/has-flag? game flag)
-  (pair? (assq flag (tris-game-flags game))))
+  (pair? (assq flag (block-game-flags game))))
 
 (define (game/add-flag! game flag . value)
-  (tris-game-flags-set! game
-                   (append (tris-game-flags game)
+  (block-game-flags-set! game
+                   (append (block-game-flags game)
                            (list
                             (if (not (null? value))
                                 (list flag (car value))
                                 (list flag '()))))))
 
 (define (game/clear-flag game flag)
-  (tris-game-flags-set! game
+  (block-game-flags-set! game
                    (filter (lambda (x) (not (eq? (car x) flag)))
-                           (tris-game-flags game))))
+                           (block-game-flags game))))
 
 (define (get-random-sprite sprites)
   (get-sprite sprites (+ 1 (random-integer 6)) 0))
@@ -110,9 +110,9 @@
 ;;   * quad      -> 4 lines clear
 (define (game/mod-score! game type . height)
   (if (not (game/has-flag? game 'game-over))
-      (let* ((level (tris-game-level game))
-             (score (tris-game-score game)))
-        (tris-game-score-set! game 
+      (let* ((level (block-game-level game))
+             (score (block-game-score game)))
+        (block-game-score-set! game 
                               (+ score
                                  (case type
                                    ((hard-drop) (* 2 (car height) level))
@@ -125,7 +125,7 @@
 ;; Test to see if a piece can be placed at the given position.  If there are
 ;; any blocking squares this returns false.
 (define (game/can-move-piece? game piece pos)
-  (let ((board (tris-game-board game))
+  (let ((board (block-game-board game))
         (pos-x (car pos))
         (pos-y (cadr pos))
         (piece-width  (piece/get-width piece))
@@ -153,8 +153,8 @@
 
 ;; Recacluates the time till a piece lowers by a cell.
 (define (game/recalc-time! game)
-  (let* ((time (* (- 11 (tris-game-level game)) 100)))
-    (tris-game-time-till-drop-set! game time)))
+  (let* ((time (* (- 11 (block-game-level game)) 100)))
+    (block-game-time-till-drop-set! game time)))
 
 ;; Performs an action for the current game.  The current actions are:
 ;;   * move-left
@@ -168,11 +168,11 @@
   (define (find-drop-position game)
     ; Start at the bottom of the board and iterate up until we find the correct
     ; position
-    (let* ((piece        (tris-game-current-piece game))
+    (let* ((piece        (block-game-current-piece game))
            (piece-width  (piece/get-width piece))
            (piece-height (piece/get-height piece))
-           (x-pos        (car (tris-game-current-position game)))
-           (y-pos        (cadr (tris-game-current-position game))))
+           (x-pos        (car (block-game-current-position game)))
+           (y-pos        (cadr (block-game-current-position game))))
       (list x-pos
             (let loop-y ((y 0))
               (if (<= y (+ piece-height board-height))
@@ -192,8 +192,8 @@
       (else old-pos)))
   
   (if (not (game/has-flag? game 'game-over))
-      (let* ((old-piece (tris-game-current-piece game))
-             (old-pos   (tris-game-current-position game))
+      (let* ((old-piece (block-game-current-piece game))
+             (old-pos   (block-game-current-position game))
              (new-piece (case action
                           ((rotate-right) (piece/rotate-right old-piece))
                           ((rotate-left)  (piece/rotate-left old-piece))
@@ -202,9 +202,9 @@
         (if (game/can-move-piece? game new-piece new-pos)
             (begin
               (if (not (eq? new-piece old-piece))
-                  (tris-game-current-piece-set! game new-piece))
+                  (block-game-current-piece-set! game new-piece))
               (if (not (eq? new-pos old-pos))
-                  (tris-game-current-position-set! game new-pos))
+                  (block-game-current-position-set! game new-pos))
               ; Special - recalc time for some cases
               (if (or (eq? action 'move-down) (eq? action 'drop-piece))
                   (game/recalc-time! game))
@@ -218,7 +218,7 @@
 
 ;; Returns a list of rows that are full (have nothing but blocks in them)
 (define (game/find-full-rows game)
-  (let ((board (tris-game-board game)))
+  (let ((board (block-game-board game)))
     (let loop-y ((y 0)
                  (rows '()))
       (if (< y board-height)
@@ -235,8 +235,8 @@
 (define (game/remove-row! game row)
   (let ((row-start (* row board-width))
         (row-end   (* (+ 1 row) board-width))
-        (board-lst (vector->list (tris-game-board game))))
-    (tris-game-board-set! game
+        (board-lst (vector->list (block-game-board game))))
+    (block-game-board-set! game
                           (list->vector
                            (append
                             ; Add a new empty row to the top
@@ -246,20 +246,20 @@
 
 (define (game/add-new-piece! game)
   (let ((new-piece (piece/generate-random
-                    (get-random-sprite (tris-game-sprites game))))
+                    (get-random-sprite (block-game-sprites game))))
         (new-pos   (list 4 0)))
     ; Test for game-over
     (if (game/can-move-piece? game new-piece new-pos)
         (begin
-          (tris-game-current-piece-set! game (tris-game-next-piece game))
-          (tris-game-next-piece-set! game new-piece)
-          (tris-game-current-position-set! game new-pos))
+          (block-game-current-piece-set! game (block-game-next-piece game))
+          (block-game-next-piece-set! game new-piece)
+          (block-game-current-position-set! game new-pos))
         (begin
           (game/add-flag! game 'game-over)
           (gamestate-switch 
            (simple-prompt-state "Gameover" 
-                                (if (highscore/is-new? (tris-game-score game))
-                                    (new-highscore-state (tris-game-score game))
+                                (if (highscore/is-new? (block-game-score game))
+                                    (new-highscore-state (block-game-score game))
                                     mainmenu-state)))))))
 
 ;; Used to place a piece on the game board.  This will fill the squares with
@@ -276,9 +276,9 @@
               (iota (length full-rows) 0))
 
     ; Set our new number of rows and recalculate the level      
-    (tris-game-lines-set! game (+ (tris-game-lines game) (length full-rows)))
-    (tris-game-level-set! game 
-                          (min (+ 1 (quotient (tris-game-lines game) 10)) 10))
+    (block-game-lines-set! game (+ (block-game-lines game) (length full-rows)))
+    (block-game-level-set! game 
+                          (min (+ 1 (quotient (block-game-lines game) 10)) 10))
     (game/mod-score! game 
                      (case (length full-rows)
                        ((1) 'single)
@@ -286,9 +286,9 @@
                        ((3) 'triple)
                        ((4) 'quad))))
 
-  (let ((board (tris-game-board game))
-        (pos-x (car (tris-game-current-position game)))
-        (pos-y (cadr (tris-game-current-position game))))
+  (let ((board (block-game-board game))
+        (pos-x (car (block-game-current-position game)))
+        (pos-y (cadr (block-game-current-position game))))
     (do ((x 0 (+ 1 x)))
         ((= x (piece/get-width piece)))
       (do ((y 0 (+ 1 y)))
@@ -310,21 +310,21 @@
 ;; reset the drop time after a piece has moved down
 (define (game/drop-piece! game)
   ; Calculate the new time
-  (let* ((pos     (tris-game-current-position game))
+  (let* ((pos     (block-game-current-position game))
          (new-pos (list (car pos) (+ 1 (cadr pos))))
-         (piece   (tris-game-current-piece game)))
+         (piece   (block-game-current-piece game)))
     (game/recalc-time! game)
 
     ; Check to see if we can drop the piece.  If not place the piece
     (if (game/can-move-piece? game piece new-pos)
-        (tris-game-current-position-set! game (list (car pos)
+        (block-game-current-position-set! game (list (car pos)
                                                     (+ 1 (cadr pos))))
         (begin (game/place-piece! game piece)
                (game/mod-score! game 'soft-drop 1)))))
 
 (define (game/update-drop-time! game delta)
-  (tris-game-time-till-drop-set! game 
-                                 (- (tris-game-time-till-drop game) delta)))
+  (block-game-time-till-drop-set! game 
+                                 (- (block-game-time-till-drop game) delta)))
 
 (define (game/drop-piece? game)
-  (<= (tris-game-time-till-drop game) 0))
+  (<= (block-game-time-till-drop game) 0))

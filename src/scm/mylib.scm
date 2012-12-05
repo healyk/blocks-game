@@ -63,14 +63,14 @@
     (render-board-background (get-sprite block-sprites 0 0) 
                              x-off y-off
                              board-width board-height)
-    (board/render (tris-game-board game) x-off y-off)
-    (let ((piece-pos (tris-game-current-position game)))
-      (piece/render-to-board (tris-game-current-piece game) 
+    (board/render (block-game-board game) x-off y-off)
+    (let ((piece-pos (block-game-current-position game)))
+      (piece/render-to-board (block-game-current-piece game) 
                             x-off y-off
                             (car piece-pos)
                             (cadr piece-pos))
       ; Render next piece
-      (piece/render-to-board (tris-game-next-piece game)
+      (piece/render-to-board (block-game-next-piece game)
                              (+ x-off (* board-width piece-pixel-size) 32)
                              (+ y-off 16)
                              0 0)))

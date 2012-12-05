@@ -53,15 +53,15 @@
   (ui/render-string (list ui/x-off 16) "Next")
   (ui/render-string ui/level-text-position
                     (str "Level: " 
-                         (list 'pad-right (tris-game-level game) 
+                         (list 'pad-right (block-game-level game) 
                                ui/characters-wide
                                #\space)))
   (ui/render-string ui/score-text-position
-                    (str "Score: " (list 'pad-right (tris-game-score game) 
+                    (str "Score: " (list 'pad-right (block-game-score game) 
                                          ui/characters-wide
                                          #\space)))
   (ui/render-string ui/lines-text-position
-                    (str "Lines: " (list 'pad-right (tris-game-lines game)
+                    (str "Lines: " (list 'pad-right (block-game-lines game)
                                          ui/characters-wide
                                          #\space))))
 
