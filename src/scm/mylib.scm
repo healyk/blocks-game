@@ -73,7 +73,17 @@
       (piece/render-to-board (block-game-next-piece game)
                              (+ x-off (* board-width piece-pixel-size) 32)
                              (+ y-off 16)
-                             0 0)))
+                             0 0)
+      ; Render ghost piece
+      (if (game/has-option? game 'ghost)
+          (let ((ghost-pos (game/find-drop-position game)))
+            ; Make sure the ghost piece is 'below' our current piece
+            (if (< (cadr piece-pos) (cadr ghost-pos))
+                (piece/render-to-board (block-game-current-piece game)
+                                       x-off y-off
+                                       (car ghost-pos)
+                                       (cadr ghost-pos)
+                                       #t))))))
   (ui/render-in-game game))
 
 ;; Macro used to make keypress actions within the game easily translatable to

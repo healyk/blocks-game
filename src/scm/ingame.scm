@@ -64,20 +64,26 @@
 
   sprites
   time-till-drop
-  flags)
+  flags
+  options)
 
 ;; Creates a new game with an empty board.
-(define (new-game)
+(define (new-game options)
   (make-block-game 0
-                  1
-                  0
-                  (make-vector (* board-width board-height) '())
-                  (piece/generate-random (get-random-sprite block-sprites))
-                  (piece/generate-random (get-random-sprite block-sprites))
-                  (list 4 0)
-                  block-sprites
-                  1100
-                  '()))
+                   1
+                   0
+                   (make-vector (* board-width board-height) '())
+                   (piece/generate-random (get-random-sprite block-sprites))
+                   (piece/generate-random (get-random-sprite block-sprites))
+                   (list 4 0)
+                   block-sprites
+                   1100
+                   '()
+                   options))
+
+(define (game/has-option? game option)
+  (let ((options (block-game-options game)))
+    (pair? (memq option options))))
 
 (define (game/has-flag? game flag)
   (pair? (assq flag (block-game-flags game))))
@@ -156,6 +162,23 @@
   (let* ((time (* (- 11 (block-game-level game)) 100)))
     (block-game-time-till-drop-set! game time)))
 
+;; Finds the lowest position the piece can be placed
+(define (game/find-drop-position game)
+  ; Start at the bottom of the board and iterate up until we find the correct
+  ; position
+  (let* ((piece        (block-game-current-piece game))
+         (piece-width  (piece/get-width piece))
+         (piece-height (piece/get-height piece))
+         (x-pos        (car (block-game-current-position game)))
+         (y-pos        (cadr (block-game-current-position game))))
+    (list x-pos
+          (let loop-y ((y 0))
+            (if (<= y (+ piece-height board-height))
+                (if (game/can-move-piece? game piece (list x-pos y))
+                    (loop-y (+ y 1))
+                    (- y 1))
+                y-pos)))))
+
 ;; Performs an action for the current game.  The current actions are:
 ;;   * move-left
 ;;   * move-right
@@ -164,23 +187,6 @@
 ;;   * move-down - moves down one block
 ;;   * drop-piece - moves the piece all the way down.
 (define (game/action! game action)
-  ;; Finds the lowest position the piece can be placed
-  (define (find-drop-position game)
-    ; Start at the bottom of the board and iterate up until we find the correct
-    ; position
-    (let* ((piece        (block-game-current-piece game))
-           (piece-width  (piece/get-width piece))
-           (piece-height (piece/get-height piece))
-           (x-pos        (car (block-game-current-position game)))
-           (y-pos        (cadr (block-game-current-position game))))
-      (list x-pos
-            (let loop-y ((y 0))
-              (if (<= y (+ piece-height board-height))
-                  (if (game/can-move-piece? game piece (list x-pos y))
-                      (loop-y (+ y 1))
-                      (- y 1))
-                  y-pos)))))
-
   ;; Depending on the action this will tranform the old position into a new
   ;; position
   (define (get-move-position old-pos)
@@ -188,7 +194,7 @@
       ((move-left)  (list (- (car old-pos) 1) (cadr old-pos)))
       ((move-right) (list (+ (car old-pos) 1) (cadr old-pos)))
       ((move-down)  (list (car old-pos) (+ (cadr old-pos) 1)))
-      ((drop-piece) (find-drop-position game))
+      ((drop-piece) (game/find-drop-position game))
       (else old-pos)))
   
   (if (not (game/has-flag? game 'game-over))

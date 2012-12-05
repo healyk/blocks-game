@@ -175,7 +175,7 @@
         (list
          (list "New Game"
                (lambda ()
-                 (set! game (new-game))
+                 (set! game (new-game '(ghost)))
                  (gamestate-switch ingame-state)))
          (list "Highscores"
                (lambda ()

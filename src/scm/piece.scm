@@ -76,12 +76,13 @@
 (define (piece/make pattern sprite)
   (cons sprite pattern))
 
-(define (piece/render-to-board piece x-off y-off x-board y-board)
+(define (piece/render-to-board piece x-off y-off x-board y-board . ghost)
   (let ((width   (piece/get-width piece))
         (height  (piece/get-height piece))
         (pixel-x (+ x-off (* x-board piece-pixel-size)))
         (pixel-y (+ y-off (* y-board piece-pixel-size)))
-        (sprite  (car piece)))
+        (sprite  (car piece))
+        (color   (list 255 255 255 (if (not (null? ghost)) 64 255))))
     (do ((y 0 (+ y 1)))
         ((= y height))
       (do ((x 0 (+ x 1)))
@@ -90,7 +91,8 @@
           (if square
               (render-sprite sprite
                              (+ pixel-x (* x piece-pixel-size))
-                             (+ pixel-y (* y piece-pixel-size)))))))))
+                             (+ pixel-y (* y piece-pixel-size))
+                             color: color)))))))
 
 ;; Takes a piece, rotates it 90 degrees to the right, and returns a new piece.
 (define (piece/rotate-right piece)
