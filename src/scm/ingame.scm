@@ -172,7 +172,7 @@
          (x-pos        (car (block-game-current-position game)))
          (y-pos        (cadr (block-game-current-position game))))
     (list x-pos
-          (let loop-y ((y 0))
+          (let loop-y ((y y-pos))
             (if (<= y (+ piece-height board-height))
                 (if (game/can-move-piece? game piece (list x-pos y))
                     (loop-y (+ y 1))
@@ -323,8 +323,8 @@
 
     ; Check to see if we can drop the piece.  If not place the piece
     (if (game/can-move-piece? game piece new-pos)
-        (block-game-current-position-set! game (list (car pos)
-                                                    (+ 1 (cadr pos))))
+        (block-game-current-position-set! game 
+                                          (list (car pos) (+ 1 (cadr pos))))
         (begin (game/place-piece! game piece)
                (game/mod-score! game 'soft-drop 1)))))
 

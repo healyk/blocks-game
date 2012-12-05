@@ -167,7 +167,7 @@ sound_new(char* filename) {
 
 void
 sound_delete(sound_t* sound) {
-  logmsg("Deleting sound...");
+  logmsg("Deleting sound with %d buffers", sound->buffer_count);
 
   if(sound->buffers != NULL) {
     alDeleteBuffers(sound->buffer_count, sound->buffers);

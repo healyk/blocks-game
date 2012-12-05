@@ -23,7 +23,7 @@ ___END_C_LINKAGE
 //==============================================================================
 // Constants
 //==============================================================================
-#define VERSION "0.1 alpha"
+#define VERSION "1.0"
 
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
@@ -49,17 +49,20 @@ keyboard_callback_wrapper(int key, int pressed) {
 
 void
 shutdown_game(void) {
-  sound_shutdown();
-
-  // Shutdown scheme
+  // Shutdown scheme - this must be done first since some scheme variables
+  // will be set to various resources.  Scheme will clean these up for us.
   if(g_is_scheme_init) {
     ___cleanup();
   }
+
+  sound_shutdown();
 
   if(g_is_gfx_init) {
     gfx_end_2d();
     gfx_shutdown();
   }
+
+  log_shutdown();
 }
 
 /**

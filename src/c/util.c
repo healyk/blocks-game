@@ -7,9 +7,11 @@
 
 static FILE* log_handle = NULL;
 
-static void
+void
 log_shutdown(void) {
   if(log_handle != NULL) {
+    // One extra flush before we close the log.
+    fflush(log_handle);
     fclose(log_handle);
   }
 }
@@ -17,7 +19,6 @@ log_shutdown(void) {
 void 
 log_init(const char* filename) {
   log_handle = fopen(filename, "wt");
-  atexit(log_shutdown);
 
   logmsg("Initializing log file.");  
 }

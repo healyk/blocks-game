@@ -14,6 +14,11 @@
 void log_init(const char* filename);
 
 /**
+   Shuts down the logging mechanism.
+*/
+void log_shutdown(void);
+
+/**
    Logs a message to the message log.
 */
 void logmsg(char* fmt, ...);
