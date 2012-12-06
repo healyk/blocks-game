@@ -70,7 +70,7 @@
 ;;;
 
 (define highscore-block-width 30)
-(define highscore-block-height 14)
+(define highscore-block-height 16)
 (define highscore-string-width 9)
 
 (define highscore-state
@@ -110,7 +110,15 @@
                                                   digit-count)
                                                #\.))
                                    (cadr score)))))
-        highscores (iota 10))))
+        highscores (iota 10))
+       
+       (ui/render-string
+        (list (+ x-origin 
+                 (* (quotient (- highscore-block-width
+                                 (string-length "Press any key to return"))
+                              2) 16))
+              (+ y-origin (* 16 (- highscore-block-height 2))))
+        "Press any key to return")))
    
    ; keypress
    (lambda (key pressed)
@@ -230,12 +238,14 @@
      (if (eq? pressed key-pressed)
          (let ((current (menu/get-selected-index)))
            (cond
-            ((eq? key key-down)
+            ((or (eq? key key-down)
+                 (eq? key move-down-key))
              (if (< current (- (length (cadr (menu/get-data))) 1))
                  (begin
                    (sound/play menu-move-sound)
                    (set! menu-data (list (+ 1 current) (menu/get-data))))))
-            ((eq? key key-up)
+            ((or (eq? key key-up)
+                 (eq? key drop-piece-key))
              (if (> current 0)
                  (begin
                    (sound/play menu-move-sound)

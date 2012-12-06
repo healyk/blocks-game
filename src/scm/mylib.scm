@@ -89,9 +89,16 @@
 ;; Macro used to make keypress actions within the game easily translatable to
 ;; gameplay actions
 (define-macro (action input sym)
-  `(if (and (eq? (char->integer ,input) key)
+  `(if (and (eq? ,input key)
             (eq? pressed key-pressed))
        (game/action! game (quote ,sym))))
+
+(define move-left-key    (char->integer #\A))
+(define move-down-key    (char->integer #\S))
+(define move-right-key   (char->integer #\D))
+(define rotate-left-key  (char->integer #\Q))
+(define rotate-right-key (char->integer #\E))
+(define drop-piece-key   (char->integer #\W))
 
 (define ingame-state
   (make-gamestate
@@ -106,12 +113,12 @@
    
    ; Keypress
    (lambda (key pressed)
-     (action #\A move-left)
-     (action #\S move-down)
-     (action #\D move-right)
-     (action #\Q rotate-left)
-     (action #\E rotate-right)
-     (action #\W drop-piece)
+     (action move-left-key    move-left)
+     (action move-down-key    move-down)
+     (action move-right-key   move-right)
+     (action rotate-left-key  rotate-left)
+     (action rotate-right-key rotate-right)
+     (action drop-piece-key   drop-piece)
      (if (and (eq? pressed key-pressed) (eq? key key-esc))
          (gamestate-switch exit-to-menu-state)))
    

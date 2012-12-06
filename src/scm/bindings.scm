@@ -135,7 +135,7 @@ C-LAMBDA-END
                         "sound_delete_release"))
 
 (define make-sound
-  (c-lambda (nonnull-char-string) sound* "sound_new"))
+  (c-lambda (nonnull-char-string) sound* "sound_load"))
 
 (define sound/play
   (c-lambda (sound*) void "sound_play"))

@@ -138,19 +138,34 @@ generate_buffers(sound_t* sound) {
 }
 
 sound_t*
-sound_new(char* filename) {
+sound_new(void) {
   sound_t* sound = NULL;
 
-  logmsg("Loading sound %s into memory.", filename);
-
-  // Allocate memory and pre-initialize some values
   sound = new(sound_t);
 
   sound->data = NULL;
   sound->buffers = NULL;
+  
+  return sound;
+}
+
+static void
+log_wav_info(char* filename, wav_t* wav) {
+  logmsg("Loaded [%s]:  %dHZ, %d channels, %d bits, %d bytes in size", 
+         filename, wav->fmt.sample_rate, wav->fmt.num_channels, 
+         wav->fmt.bits_per_sample, wav->data.subchunk2_size);
+}
+
+sound_t*
+sound_load(char* filename) {
+  sound_t* sound = NULL;
+
+  sound = sound_new();
 
   {
     wav_t* wav = wav_load(filename);
+    log_wav_info(filename, wav);
+
     wav_to_sound(wav, sound);
     wav_delete(wav);
   }

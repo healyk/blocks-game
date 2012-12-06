@@ -43,17 +43,33 @@ bool sound_init(void);
 void sound_shutdown(void);
 
 /**
-   Loads a sound file into an audio chunk.
+   Generates a new sound object in memory.  To load sound objects from a file,
+   use sound_load(filename) instead.
+   @return
+     Newly generated sound memory.
 */
-sound_t* sound_new(char* filename);
+sound_t* sound_new(void);
+
+/**
+   Loads a sound file into an audio chunk.
+   @param filename
+     Filename of the sound to load
+   @return
+     The newly allocated sound, or NULL if an error occured.
+*/
+sound_t* sound_load(char* filename);
 
 /** 
     Deletes an existing sound.
+    @param sound
+      Sound to delete.
 */
 void sound_delete(sound_t* sound);
 
 /**
-   Plays a chunk.
+   Plays a sound.
+   @param sound
+     Sound to play.
 */
 void sound_play(sound_t* sound);
 
