@@ -7,12 +7,12 @@ for points.
 Controls
 ===
 
-A - move left
-D - move right
-S - move down 1 row
-W - drop piece
-Q - rotate piece left
-E - rotate piece right
+ * A - move left
+ * D - move right
+ * S - move down 1 row
+ * W - drop piece
+ * Q - rotate piece left
+ * E - rotate piece right
 
 Basically WASD type controls.
 
