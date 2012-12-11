@@ -10,6 +10,8 @@
 (define ui/score-text-position (list ui/x-off 144))
 (define ui/lines-text-position (list ui/x-off 160))
 (define ui/characters-wide 7)
+(define font-width 16)
+(define font-height 16)
 
 ;; sounds
 (define menu-move-sound #f)
@@ -24,9 +26,9 @@
 ;; blocks.  Returns a list with the x/y origin
 (define (render-centered-board-background width height)
   (let* ((x-origin (quotient (- (gfx/get-width) 
-                                (* 16 width)) 2))
+                                (* font-width width)) 2))
          (y-origin (quotient (- (gfx/get-height)
-                                (* 16 height)) 2)))
+                                (* font-height height)) 2)))
     (render-board-background (get-sprite block-sprites 0 0)
                              x-origin y-origin
                              width
@@ -37,7 +39,8 @@
 (define ui-font '())
 
 (define (ui/init)
-  (set! ui-font (make-font (load-texture "data/font.png") 16 16))
+  (set! ui-font (make-font (load-texture "data/font.png") 
+                           font-width font-height))
   (set! menu-move-sound (make-sound "data/menu-move.wav"))
   (set! menu-select-sound (make-sound "data/menu-select.wav")))
 
@@ -50,7 +53,7 @@
                             '(255 255 255 255))))
 
 (define (ui/render-in-game game)
-  (ui/render-string (list ui/x-off 16) "Next")
+  (ui/render-string (list ui/x-off font-width) "Next")
   (ui/render-string ui/level-text-position
                     (str "Level: " 
                          (list 'pad-right (block-game-level game) 
@@ -91,8 +94,8 @@
        (ui/render-string 
         (list (+ x-origin (* (quotient (- highscore-block-width
                                           highscore-string-width)
-                                       2) 16)) 
-              (+ y-origin 16))
+                                       2) font-width)) 
+              (+ y-origin font-height))
         "Highscore")
        
        ; Render individual scores
@@ -100,8 +103,8 @@
         (lambda (score count)
           (let ((name-length (string-length (car score)))
                 (digit-count (length (integer->list (cadr score)))))
-            (ui/render-string (list (+ x-origin 16)
-                                    (+ y-origin 48 (* count 16)))
+            (ui/render-string (list (+ x-origin font-width)
+                                    (+ y-origin 48 (* count font-height)))
                               (str (car score)
                                    (list->string
                                     (make-list (- highscore-block-width
@@ -116,8 +119,8 @@
         (list (+ x-origin 
                  (* (quotient (- highscore-block-width
                                  (string-length "Press any key to return"))
-                              2) 16))
-              (+ y-origin (* 16 (- highscore-block-height 2))))
+                              2) font-width))
+              (+ y-origin (* font-height (- highscore-block-height 2))))
         "Press any key to return")))
    
    ; keypress
@@ -140,9 +143,11 @@
        (let* ((x-y-origin (render-centered-board-background 24 5))
               (x-origin   (car x-y-origin))
               (y-origin   (cadr x-y-origin)))
-         (ui/render-string (list (+ x-origin 32) (+ y-origin 16))
+         (ui/render-string (list (+ x-origin (* 2 font-width)) 
+                                 (+ y-origin font-height))
                            "Enter your name.")
-         (ui/render-string (list (+ x-origin 32) (+ y-origin 48))
+         (ui/render-string (list (+ x-origin (* 2 font-width)) 
+                                 (+ y-origin (* 2 font-height)))
                            (str "*" name))))
 
      ; keypress 
@@ -210,14 +215,15 @@
          (y-origin (cadr x-y-origin)))
 
     ; Render the menu name
-    (ui/render-string (list (+ x-origin (* 16 1)) (+ y-origin (* 16 1)))
+    (ui/render-string (list (+ x-origin font-width) (+ y-origin font-height))
                       (car (cadr data)))
 
     ; Render the menu items
     (for-each (lambda (item count)
                 (let ((selected (eq? count select)))
-                  (ui/render-string (list (+ x-origin (if selected 16 32))
-                                          (+ y-origin (* count 16) 48))
+                  (ui/render-string (list (+ x-origin (* font-width 
+                                                         (if selected 1 2)))
+                                          (+ y-origin (* count font-height) 48))
                                     (if selected
                                         (string-append ">" (car item))
                                         (car item)))))
@@ -275,7 +281,9 @@
                       (+ 2 (string-length text)) 3))
          (x-origin (car x-y-origin))
          (y-origin (cadr x-y-origin)))
-    (ui/render-string (list (+ x-origin 16) (+ y-origin 16)) text)))
+    (ui/render-string (list (+ x-origin font-width) 
+                            (+ y-origin font-height)) 
+                      text)))
 
 (define exit-to-menu-state
   (make-gamestate
