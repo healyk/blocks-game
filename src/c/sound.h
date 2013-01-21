@@ -6,6 +6,7 @@
 #ifndef SOUND_H
 #define SOUND_H
 
+#include <stdint.h>
 #include <stdbool.h>
 #include <AL/al.h>
 
@@ -21,13 +22,13 @@ typedef struct sound {
   /** Contains the raw sample data. */
   ALvoid*   data;
 
+  /** Length of the sound in milliseconds. */
+  int32_t length_ms;
+
   /** Number of buffers used. */
   size_t    buffer_count;
   /** Buffers used to hold the sound in OpenAL memory. */
   ALuint*   buffers;
-
-  /** Used to keep track of any source this sound is curerntly queued in. */
-  ALuint    source;
 } sound_t;
 
 /**
@@ -72,5 +73,11 @@ void sound_delete(sound_t* sound);
      Sound to play.
 */
 void sound_play(sound_t* sound);
+
+/**
+   Performs the update logic on sound channels.  Should be called in the game
+   loop.
+*/
+void sound_update(long delta);
 
 #endif 

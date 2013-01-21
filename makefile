@@ -147,7 +147,7 @@ run:
 	@PATH=$PATH:./contrib/lib $(BLD_DIR)/$(PROG_NAME)
 
 gdb:
-	PATH=$PATH:./contrib/lib/ gdb $(BLD_DIR)/$(PROG_NAME)
+	@libtool --mode=execute gdb $(BLD_DIR)/$(PROG_NAME)
 
 package:
 	mkdir -p $(PKG_DIR)

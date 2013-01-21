@@ -182,6 +182,8 @@ main(int argc, char** argv, char** envp) {
         running = render_game(delta);
         glfwSwapBuffers();
       }
+
+      sound_update(delta);
     }
 
     // Don't check if we're not running any more

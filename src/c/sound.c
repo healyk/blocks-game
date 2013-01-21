@@ -11,11 +11,23 @@
 //==============================================================================
 // Constants
 //==============================================================================
-#define BUFFER_SIZE 32768
+#define BUFFER_SIZE   32768
+#define CHANNEL_COUNT 8
 
 //==============================================================================
 // Globals
 //==============================================================================
+/**
+   Sound channels model a currently playing audio stream.
+*/
+typedef struct sound_channel {
+  /** OpenAL source for the channel when playing. */
+  ALuint source;
+
+  /** Sound currently occuping the channel. */
+  sound_t* sound;
+} sound_channel_t;
+
 /**
    Used to keep track of the OpenAL global state.
 */
@@ -26,10 +38,8 @@ struct {
   ALCcontext* context;
   ALCdevice*  device;
 
-  ALuint      source;
-} g_sound_context = {
-  false, NULL, NULL, 0
-};
+  sound_channel_t channels[CHANNEL_COUNT];
+} g_sound_context;
 
 /**
    Queries OpenAL for an error.  If an error occurs it prints it to the logs
@@ -74,8 +84,13 @@ sound_init(void) {
     alcProcessContext(g_sound_context.context);
   }
 
-  // Create a global source
-  alGenSources(1, &g_sound_context.source);
+  // Create the channels and sources
+  for(int i = 0; i < CHANNEL_COUNT; i++) {
+    sound_channel_t* channel = &g_sound_context.channels[i];
+
+    channel->sound = NULL;
+    alGenSources(1, &channel->source);
+  }
 
   alDistanceModel(AL_NONE);
   
@@ -83,6 +98,28 @@ sound_init(void) {
   alGetError();
   
   return result;
+}
+
+static void
+sound_get_length(sound_t* sound) {
+  ALint size_in_bytes;
+  ALint channels;
+  ALint bits;
+  ALint frequency;
+
+  for(int i = 0; i < sound->buffer_count; i++) {
+    int length_in_samples;
+
+    alGetBufferi(sound->buffers[i], AL_SIZE, &size_in_bytes);
+    alGetBufferi(sound->buffers[i], AL_CHANNELS, &channels);
+    alGetBufferi(sound->buffers[i], AL_BITS, &bits);
+    alGetBufferi(sound->buffers[i], AL_FREQUENCY, &frequency);
+
+    length_in_samples = size_in_bytes * 8 / (channels * bits);
+    sound->length_ms += (length_in_samples * 1000) / frequency;
+  }
+  
+  sound->length_ms += 10;
 }
 
 /**
@@ -106,7 +143,7 @@ wav_to_sound(wav_t* wav, sound_t* sound) {
 
   sound->size = wav->data.subchunk2_size;
   sound->frequency = wav->fmt.sample_rate;
-  
+
   sound->data = new_array(unsigned char, sound->size);
   memcpy(sound->data, wav->data.data, sound->size);
 }
@@ -177,6 +214,9 @@ sound_load(char* filename) {
     logmsg("Error creating sound!  NULL returned.");
   }
 
+  sound_get_length(sound);
+  openal_check_for_error("sound duration");
+
   return sound;
 }
 
@@ -196,6 +236,30 @@ sound_delete(sound_t* sound) {
   delete(sound);
 }
 
+static bool
+is_channel_playing(sound_channel_t* channel) {
+  ALenum state;
+  alGetSourcei(channel->source, AL_SOURCE_STATE, &state);
+
+  return state == AL_PLAYING;
+}
+
+/**
+   Stops a channel from playing any more sound.  It will remove the current
+   sound.
+*/
+static void
+sound_stop_channel(sound_channel_t* channel) {
+  if(channel->sound != NULL) {
+    if(is_channel_playing(channel)) {
+      alSourceStop(channel->source);
+    }
+
+    alSourcei(channel->source, AL_BUFFER, AL_NONE);
+    channel->sound = NULL;
+  }
+}
+
 void 
 sound_shutdown(void) {
   if(g_sound_context.inited) {
@@ -205,7 +269,11 @@ sound_shutdown(void) {
     alcDestroyContext(g_sound_context.context);
     alcCloseDevice(g_sound_context.device);
 
-    alDeleteSources(1, &g_sound_context.source);
+    // clean up channels
+    for(int i = 0; i < CHANNEL_COUNT; i++) {
+      sound_stop_channel(&g_sound_context.channels[i]);
+      alDeleteSources(1, &g_sound_context.channels[i].source);
+    }
 
     g_sound_context.inited = false;
   }
@@ -213,24 +281,39 @@ sound_shutdown(void) {
 
 void 
 sound_play(sound_t* sound) {
-  ALint current_buffer;
-  alGetSourceiv(g_sound_context.source, AL_BUFFER, &current_buffer);
+  sound_channel_t* open_channel = NULL;
 
-  // unbind any previous sources
-  if(current_buffer != AL_NONE) {
-    alSourceStop(g_sound_context.source);
-    alSourcei(g_sound_context.source,
-              AL_BUFFER,
-              AL_NONE);
+  // Find an open channel
+  for(int i = 0; i < CHANNEL_COUNT && open_channel == NULL; i++) {
+    if(g_sound_context.channels[i].sound == NULL) {
+      open_channel = &g_sound_context.channels[i];
+    }
   }
 
-  if(openal_check_for_error("unqueueing buffers")) {
-    alSourceQueueBuffers(g_sound_context.source, 
-                         sound->buffer_count, 
-                         sound->buffers);
+  // Play the sound
+  if(open_channel != NULL) {
+    open_channel->sound = sound;
+
+    alSourceQueueBuffers(open_channel->source, 
+                         sound->buffer_count, sound->buffers);
     
-    alSourcePlay(g_sound_context.source);
+    alSourcePlay(open_channel->source);
+  } else {
+    logmsg("Warning - no open sound channels.");
   }
   
   openal_check_for_error("playing sound");
+}
+
+void
+sound_update(long delta) {
+  for(int i = 0; i < CHANNEL_COUNT; i++) {
+    sound_channel_t* channel = &g_sound_context.channels[i];
+
+    if(channel->sound != NULL) {
+      if(!is_channel_playing(channel)) {
+        sound_stop_channel(channel);
+      }
+    }
+  }
 }
