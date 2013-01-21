@@ -12,7 +12,7 @@
 // Constants
 //==============================================================================
 #define BUFFER_SIZE   32768
-#define CHANNEL_COUNT 8
+#define CHANNEL_COUNT 4
 
 //==============================================================================
 // Globals
@@ -98,28 +98,6 @@ sound_init(void) {
   alGetError();
   
   return result;
-}
-
-static void
-sound_get_length(sound_t* sound) {
-  ALint size_in_bytes;
-  ALint channels;
-  ALint bits;
-  ALint frequency;
-
-  for(int i = 0; i < sound->buffer_count; i++) {
-    int length_in_samples;
-
-    alGetBufferi(sound->buffers[i], AL_SIZE, &size_in_bytes);
-    alGetBufferi(sound->buffers[i], AL_CHANNELS, &channels);
-    alGetBufferi(sound->buffers[i], AL_BITS, &bits);
-    alGetBufferi(sound->buffers[i], AL_FREQUENCY, &frequency);
-
-    length_in_samples = size_in_bytes * 8 / (channels * bits);
-    sound->length_ms += (length_in_samples * 1000) / frequency;
-  }
-  
-  sound->length_ms += 10;
 }
 
 /**
@@ -214,9 +192,6 @@ sound_load(char* filename) {
     logmsg("Error creating sound!  NULL returned.");
   }
 
-  sound_get_length(sound);
-  openal_check_for_error("sound duration");
-
   return sound;
 }
 
@@ -236,6 +211,14 @@ sound_delete(sound_t* sound) {
   delete(sound);
 }
 
+/**
+   Determines if a channel is currently playing.
+
+   @param channel
+     Channel to check
+   @return
+     True if the channel is still playing, false if not.
+*/
 static bool
 is_channel_playing(sound_channel_t* channel) {
   ALenum state;
@@ -253,9 +236,11 @@ sound_stop_channel(sound_channel_t* channel) {
   if(channel->sound != NULL) {
     if(is_channel_playing(channel)) {
       alSourceStop(channel->source);
+      openal_check_for_error("Stopping channel");
     }
 
     alSourcei(channel->source, AL_BUFFER, AL_NONE);
+    openal_check_for_error("Unbinding source");
     channel->sound = NULL;
   }
 }

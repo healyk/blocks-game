@@ -22,9 +22,6 @@ typedef struct sound {
   /** Contains the raw sample data. */
   ALvoid*   data;
 
-  /** Length of the sound in milliseconds. */
-  int32_t length_ms;
-
   /** Number of buffers used. */
   size_t    buffer_count;
   /** Buffers used to hold the sound in OpenAL memory. */
