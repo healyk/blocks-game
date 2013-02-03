@@ -40,7 +40,8 @@ endif
 DEFS = -DSCHEME_LIBRARY_LINKER=____20_$(PROG_NAME)___2e_scheme \
 	-DVERSION='"$(VERSION)"'
 
-CFLAGS = -Wall -std=c99 -I./contrib/include -I$(GAMBIT_HOME)/include
+CFLAGS = -Wall -ansi -std=c99 -I./contrib/include -I$(GAMBIT_HOME)/include \
+	-pedantic
 
 # Windows specific flags
 ifeq ($(OS), win)

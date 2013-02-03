@@ -141,7 +141,7 @@ generate_buffers(sound_t* sound) {
       
       alBufferData(sound->buffers[i],
                    sound->format, 
-                   (void*)(sound->data + (i * BUFFER_SIZE)), 
+                   (ALvoid*)((char*)sound->data + (i * BUFFER_SIZE)), 
                    buffer_size,
                    sound->frequency);
       
